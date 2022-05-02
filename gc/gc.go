@@ -33,13 +33,11 @@ func parseFasta(path string) []Fasta {
 	var result []Fasta
 	var name string
 	content := openFile(path)
-	currSeq := -1
 	fastaStore := make(map[string][]string)
 	for _, line := range content {
 		if strings.HasPrefix(line, ">") {
 			// is neq sequence
 			name = strip(line)
-			currSeq++
 		} else {
 			fastaStore[name] = append(fastaStore[name], line)
 		}
@@ -55,6 +53,7 @@ func parseFasta(path string) []Fasta {
 }
 
 func pGC(seq string) float64 {
+	// proportion of GC content in seq
 	var lenStr = len(seq)
 	var count = 0
 	for i := 0; i < lenStr; i++ {
