@@ -12,28 +12,27 @@ type Fasta struct {
 	Seq  string
 }
 
-
 func strip(s string) string {
-    if strings.HasPrefix(s, ">") {
-        s = s[1:]
-    }
-    return s
+	if strings.HasPrefix(s, ">") {
+		s = s[1:]
+	}
+	return s
 }
 
 func openFile(path string) []string {
-    bytes, err := ioutil.ReadFile(path)
-    if err != nil {
-        panic(err)
-    }
-    content := strings.Split(string(bytes), "\n")
-    return content
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	content := strings.Split(string(bytes), "\n")
+	return content
 }
 
 func parseFasta(path string) []Fasta {
 	// awful fasta parser, but it works
-    var result []Fasta
+	var result []Fasta
 	var name string
-    content := openFile(path)
+	content := openFile(path)
 	currSeq := -1
 	fastaStore := make(map[string][]string)
 	for _, line := range content {
@@ -47,7 +46,7 @@ func parseFasta(path string) []Fasta {
 	}
 	for name, seqArr := range fastaStore {
 		var fullSeq = strings.Builder{}
-		for _, i := range(seqArr) {
+		for _, i := range seqArr {
 			fullSeq.WriteString(i)
 		}
 		result = append(result, Fasta{name, fullSeq.String()})
@@ -67,9 +66,8 @@ func pGC(seq string) float64 {
 	return float64(count) / float64(lenStr)
 }
 
-
 func main() {
-    path := os.Args[1]
+	path := os.Args[1]
 	seqs := parseFasta(path)
 	var currMaxProp = 0.0
 	var currMaxName = ""
