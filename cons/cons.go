@@ -28,10 +28,7 @@ func strip(s string) string {
 }
 
 func openFile(path string) []string {
-	bytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
+	bytes, _ := ioutil.ReadFile(path)
 	content := strings.Split(string(bytes), "\n")
 	return content
 }
@@ -44,7 +41,6 @@ func parseFasta(path string) []Fasta {
 	fastaStore := make(map[string][]string)
 	for _, line := range content {
 		if strings.HasPrefix(line, ">") {
-			// is neq sequence
 			name = strip(line)
 		} else {
 			fastaStore[name] = append(fastaStore[name], line)
@@ -60,24 +56,12 @@ func parseFasta(path string) []Fasta {
 	return result
 }
 
-func getSize(fastas []Fasta) (int, int) {
-	// want to know how many seqeuences, and their length
-	// assuming their lengths are all equal
-	nSeqs := len(fastas)
-	var seqLens []int
-	for _, fasta := range fastas {
-		seqLens = append(seqLens, len(fasta.Seq))
-	}
-	return nSeqs, seqLens[0]
-}
-
 func makeSeqMat(fastas []Fasta) SeqMat {
-	nSeqs, _ := getSize(fastas)
-	charMat := make([][]string, nSeqs)
+	charMat := make([][]string, len(fastas))
 	for idx, f := range fastas {
 		for i := 0; i < len(f.Seq); i++ {
-			nuc := string(f.Seq[i])
-			charMat[idx] = append(charMat[idx], nuc)
+			base := string(f.Seq[i])
+			charMat[idx] = append(charMat[idx], base)
 		}
 	}
 	return charMat
@@ -86,7 +70,7 @@ func makeSeqMat(fastas []Fasta) SeqMat {
 func consensus(x SeqMat) ConMat {
 	output := ConMat{}
 	for i := 0; i < len(x[0]); i++ {
-		counter := initBaseCount()
+		counter := make(BaseCount)
 		for j := 0; j < len(x); j++ {
 			counter[x[j][i]]++
 		}
@@ -95,41 +79,34 @@ func consensus(x SeqMat) ConMat {
 	return output
 }
 
-func getMostCommonNuc(bc BaseCount) string {
-	curr_max := 0
-	var curr_max_nuc string
-	for k, v := range bc {
-		if v >= curr_max {
-			curr_max = v
-			curr_max_nuc = string(k)
+func mostCommonBase(bc BaseCount) string {
+	maxCount := 0
+	var mostCommonBase string
+	for base, count := range bc {
+		if count >= maxCount {
+			maxCount = count
+			mostCommonBase = string(base)
 		}
 	}
-	return curr_max_nuc
+	return mostCommonBase
 }
 
 func consensusSeq(x ConMat) string {
 	// form consensus sequence from ConMat
 	seq := strings.Builder{}
 	for _, baseCount := range x {
-		mostCommon := getMostCommonNuc(baseCount)
+		mostCommon := mostCommonBase(baseCount)
 		seq.WriteString(mostCommon)
 	}
 	return seq.String()
 }
 
-func initBaseCount() BaseCount {
-	counter := make(BaseCount)
-	for _, base := range "ACGT" {
-		counter[string(base)] = 0
-	}
-	return counter
-}
-
 func (x ConMat) print() {
-	for _, nuc := range "ACGT" {
-		fmt.Printf("%s: ", string(nuc))
+	// pretty print consensus matrix for output
+	for _, base := range "ACGT" {
+		fmt.Printf("%s: ", string(base))
 		for _, seq := range x {
-			fmt.Printf("%d ", seq[string(nuc)])
+			fmt.Printf("%d ", seq[string(base)])
 		}
 		fmt.Println()
 	}
